@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: FRACTO API
+  version: "1.0.0"
+  description: >
+    API de autenticación para la app FRACTO. Incluye registro,
+    login, perfil autenticado, logout y logout global. Autenticación
+    por tokens de Laravel Sanctum (Bearer).
+
+servers:
+  - url: http://127.0.0.1:8000/api/v1
+    description: Local (desarrollo)
+  - url: https://api.fracto.tu-dominio.com/api/v1
+    description: Producción (ejemplo)
+
+tags:
+  - name: Auth
+    description: Endpoints de autenticación
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registro de usuario
+      description: Crea un usuario y retorna un token de acceso (Bearer).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              ejemplo:
+                value:
+                  name: "Ana"
+                  email: "ana@uv.mx"
+                  password: "supersegura123"
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                ok:
+                  value:
+                    user: { id: 1, name: "Ana", email: "ana@uv.mx" }
+                    token: "1|xxxx.yyyy"
+        '422':
+          description: Error de validación (email duplicado u otros)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      description: Valida credenciales y retorna un token de acceso (Bearer).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              ejemplo:
+                value:
+                  email: "ana@uv.mx"
+                  password: "supersegura123"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Perfil autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar sesión actual
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token actual revocado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      summary: Cerrar todas las sesiones del usuario
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Todos los tokens revocados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+
+  schemas:
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Ana
+        email:
+          type: string
+          format: email
+          example: ana@uv.mx
+
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Ana
+        email:
+          type: string
+          format: email
+          example: ana@uv.mx
+        password:
+          type: string
+          minLength: 8
+          example: supersegura123
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: ana@uv.mx
+        password:
+          type: string
+          example: supersegura123
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: Token de acceso Bearer (Sanctum)
+          example: 1|bJQ8Lx...
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Sesión cerrada"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Credenciales inválidas"
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - "The email has already been taken."
