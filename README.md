@@ -1,61 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# FRACTO API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend en **Laravel 11 + Sanctum + PostgreSQL** para la aplicación educativa **FRACTO**, desarrollada como parte de las prácticas profesionales en la Universidad Veracruzana.  
+Esta API gestiona el registro, autenticación y sesiones de jugadores que interactúan con la app **Godot**, permitiendo sincronizar progreso, estadísticas y sesiones de minijuegos.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Características principales
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- API RESTful basada en Laravel Sanctum (tokens personales Bearer)
+- Autenticación de usuarios (registro, login, logout, perfil)
+- Integración con base de datos **PostgreSQL**
+- Documentación completa en formato **OpenAPI 3.0 (Swagger/ReDoc)**
+- Soporte CORS y estructura para futuras extensiones (juego, estadísticas, exportación CSV)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Requisitos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Herramienta | Versión recomendada |
+|--------------|--------------------|
+| PHP          | ≥ 8.2              |
+| Composer     | ≥ 2.6              |
+| PostgreSQL   | ≥ 14               |
+| Node.js (solo para docs) | ≥ 18 |
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalación local
 
-## Laravel Sponsors
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/josephaven/fracto-api.git
+cd fracto-api
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 2. Instalar dependencias PHP
+composer install
 
-### Premium Partners
+# 3. Copiar variables de entorno
+cp .env.example .env
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 4. Generar clave de aplicación
+php artisan key:generate
 
-## Contributing
+# 5. Configurar tu conexión PostgreSQL en .env
+#    (DB_DATABASE=fracto, DB_USERNAME=postgres, DB_PASSWORD=tu_clave)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 6. Ejecutar migraciones
+php artisan migrate
 
-## Code of Conduct
+# 7. Levantar el servidor local
+php artisan serve
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
 
-## Security Vulnerabilities
+## Endpoints principales (v1)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Método | Ruta | Descripción |
+|:------:|:-----|:------------|
+| POST | /api/v1/auth/register | Registro de usuario |
+| POST | /api/v1/auth/login | Inicio de sesión |
+| GET  | /api/v1/auth/me | Perfil autenticado |
+| POST | /api/v1/auth/logout | Cerrar sesión actual |
+| POST | /api/v1/auth/logout-all | Cerrar todas las sesiones |
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Autenticación
+
+El sistema usa **Laravel Sanctum** para emitir tokens personales.
+
+Ejemplo de encabezado: Authorization: Bearer <token>
+
+
+## Estructura mínima de la base de datos
+
+| Tabla | Descripción |
+|:------|:-------------|
+| users | Usuarios registrados |
+| personal_access_tokens | Tokens de autenticación (Laravel Sanctum) |
+
+
+## Documentación técnica
+
+- OpenAPI Spec: `openapi/fracto-auth.yml`
+- Vista ReDoc local: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+Para regenerar:
+```bash
+npx @redocly/cli build-docs openapi/fracto-auth.yml -o public/docs/index.html
+```
+
+## Pruebas y ejemplos
+
+Puedes probar los endpoints con:
+
+- **Postman** → importa `openapi/fracto-auth.yml`
+- **Thunder Client (VS Code)** → abre directamente el archivo YAML
+- **cURL:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/auth/register \
+-H "Content-Type: application/json" \
+-d '{"name":"Jose","email":"zS000000@estudiantes.uv.mx","password":"supersegura123"}'
+```
+
+## Seguridad y buenas prácticas
+
+- Hash de contraseñas con bcrypt
+- Tokens personales con Laravel Sanctum
+- Configuración CORS abierta en desarrollo (`config/cors.php`)
+- Rate limiting: `->middleware('throttle:60,1')`
+- Logs centralizados (canal stack, nivel debug)
+- Variables sensibles solo en `.env`
+
+## Autor
+
+**Joseph Javier Avendaño Rodríguez**  
+Facultad de Contaduría y Administración - Campus Coatzacoalcos - Universidad Veracruzana  
+2025 © FRACTO
+
+## Licencia
+Proyecto distribuido bajo **Licencia MIT**
+
