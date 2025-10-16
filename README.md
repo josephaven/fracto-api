@@ -57,11 +57,11 @@ php artisan serve
 
 | Método | Ruta | Descripción |
 |:------:|:-----|:------------|
-| POST | /api/v1/auth/register | Registro de usuario |
-| POST | /api/v1/auth/login | Inicio de sesión |
-| GET  | /api/v1/auth/me | Perfil autenticado |
-| POST | /api/v1/auth/logout | Cerrar sesión actual |
-| POST | /api/v1/auth/logout-all | Cerrar todas las sesiones |
+| POST | https://fracto-api.onrender.com/api/v1/auth/register | Registro de usuario |
+| POST | https://fracto-api.onrender.com/api/v1/auth/login | Inicio de sesión |
+| GET  | https://fracto-api.onrender.com/api/v1/auth/me | Perfil autenticado |
+| POST | https://fracto-api.onrender.com/api/v1/auth/logout | Cerrar sesión actual |
+| POST | https://fracto-api.onrender.com/api/v1/auth/logout-all | Cerrar todas las sesiones |
 
 
 ## Autenticación
