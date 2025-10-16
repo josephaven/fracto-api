@@ -1,0 +1,97 @@
+services:
+  # -------------------- WEB (Laravel) --------------------
+  - type: web
+    name: fracto-api
+    env: php
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /up
+    buildCommand: |
+      composer install --no-dev --prefer-dist --optimize-autoloader
+      php artisan key:generate --force
+      php artisan storage:link || true
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+    startCommand: php -S 0.0.0.0:$PORT -t public
+    postDeployCommand: |
+      php artisan migrate --force --no-interaction
+    envVars:
+      - key: APP_NAME
+        value: FRACTO API
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://fracto-api.onrender.com
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_TIMEZONE
+        value: America/Mexico_City
+      - key: TRUSTED_PROXIES
+        value: "*"
+
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: database
+
+      - key: FILESYSTEM_DISK
+        value: public
+
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: fracto
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: fracto
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: fracto
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: fracto
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: fracto
+          property: password
+
+  # -------------------- WORKER (colas) --------------------
+  - type: worker
+    name: fracto-queues
+    env: php
+    plan: free
+    autoDeploy: true
+    buildCommand: |
+      composer install --no-dev --prefer-dist --optimize-autoloader
+      php artisan config:cache
+    startCommand: php artisan queue:work --queue=default --sleep=3 --tries=3 --no-interaction
+    envVars:
+      - fromGroup: fracto-api
+
+  # -------------------- CRON (scheduler Laravel) --------------------
+  - type: cron
+    name: fracto-scheduler
+    schedule: "* * * * *"
+    env: php
+    command: php artisan schedule:run
+    envVars:
+      - fromGroup: fracto-api
+
+databases:
+  - name: fracto
+    plan: free
