@@ -26,11 +26,9 @@ RUN composer install --no-dev --optimize-autoloader
 # Da permisos de escritura a storage y cache (necesarios en Laravel)
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Genera APP_KEY y ejecuta migraciones automáticamente al arrancar el contenedor
-# (si las variables de entorno están configuradas)
-CMD php artisan key:generate --force && \
-    php artisan migrate --force --no-interaction && \
-    apache2-foreground
+# Ejecuta migraciones automáticamente (sin fallar si la BD aún no está lista)
+# Luego inicia Apache en primer plano
+CMD php artisan migrate --force --no-interaction || true && apache2-foreground
 
 # Expone el puerto HTTP
 EXPOSE 80
