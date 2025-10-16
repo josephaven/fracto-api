@@ -2,39 +2,33 @@
 # FRACTO API - Dockerfile para despliegue en Render
 # ------------------------------------------------------------
 
-# Imagen base: PHP 8.3 con Apache
 FROM php:8.3-apache
 
-# Instala dependencias necesarias para Laravel y PostgreSQL
+# Dependencias PHP + Postgres
 RUN apt-get update && apt-get install -y \
     git unzip zip libpq-dev libzip-dev \
  && docker-php-ext-install pdo pdo_pgsql zip \
  && a2enmod rewrite
 
-# Configura Apache para servir Laravel desde /public
+# Servir Laravel desde /public y habilitar .htaccess
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!Directory /var/www/!Directory ${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
+    && sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
     && a2enmod rewrite
 
-# Copia todos los archivos del proyecto al contenedor
+# Copia de código
 COPY . /var/www/html
-
-# Define el directorio de trabajo
 WORKDIR /var/www/html
 
-# Instala Composer (copiado desde imagen oficial)
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Instala dependencias de Laravel sin las de desarrollo y optimiza
 RUN composer install --no-dev --optimize-autoloader
 
-# Da permisos de escritura a storage y cache (necesarios en Laravel)
+# Permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Ejecuta migraciones automáticamente (sin fallar si la BD aún no está lista)
-# Luego inicia Apache en primer plano
+# Migraciones tolerantes y arranque
 CMD php artisan migrate --force --no-interaction || true && apache2-foreground
 
-# Expone el puerto HTTP
 EXPOSE 80
