@@ -11,6 +11,12 @@ RUN apt-get update && apt-get install -y \
  && docker-php-ext-install pdo pdo_pgsql zip \
  && a2enmod rewrite
 
+# Configura Apache para servir Laravel desde /public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!Directory /var/www/!Directory ${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
+    && a2enmod rewrite
+
 # Copia todos los archivos del proyecto al contenedor
 COPY . /var/www/html
 
