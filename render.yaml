@@ -2,19 +2,10 @@ services:
   # -------------------- WEB (Laravel) --------------------
   - type: web
     name: fracto-api
-    env: php
+    env: docker
     plan: free
     autoDeploy: true
     healthCheckPath: /up
-    buildCommand: |
-      composer install --no-dev --prefer-dist --optimize-autoloader
-      php artisan key:generate --force
-      php artisan storage:link || true
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-      php artisan migrate --force --no-interaction
-    startCommand: php -S 0.0.0.0:$PORT -t public
     envVars:
       - key: APP_NAME
         value: FRACTO API
@@ -46,7 +37,7 @@ services:
       - key: FILESYSTEM_DISK
         value: public
 
-      # DB (enlazada al recurso "fracto" de abajo)
+      # DB
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -73,13 +64,10 @@ services:
   # -------------------- WORKER (colas) --------------------
   - type: worker
     name: fracto-queues
-    env: php
+    env: docker
     plan: free
     autoDeploy: true
-    buildCommand: |
-      composer install --no-dev --prefer-dist --optimize-autoloader
-      php artisan config:cache
-    startCommand: php artisan queue:work --queue=default --sleep=3 --tries=3 --no-interaction
+    dockerCommand: php artisan queue:work --queue=default --sleep=3 --tries=3 --no-interaction
     envVars:
       - fromGroup: fracto-api
 
@@ -87,8 +75,8 @@ services:
   - type: cron
     name: fracto-scheduler
     schedule: "* * * * *"
-    env: php
-    startCommand: php artisan schedule:run
+    env: docker
+    dockerCommand: php artisan schedule:run
     envVars:
       - fromGroup: fracto-api
 
