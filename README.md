@@ -82,7 +82,7 @@ Ejemplo de encabezado: Authorization: Bearer <token>
 ## Documentación técnica
 
 - OpenAPI Spec: `openapi/fracto-auth.yml`
-- Vista ReDoc local: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Vista ReDoc local: [https://fracto-api.onrender.com/docs/](https://fracto-api.onrender.com/docs/)
 
 Para regenerar:
 ```bash
