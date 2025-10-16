@@ -13,9 +13,8 @@ services:
       php artisan config:cache
       php artisan route:cache
       php artisan view:cache
-    startCommand: php -S 0.0.0.0:$PORT -t public
-    postDeployCommand: |
       php artisan migrate --force --no-interaction
+    startCommand: php -S 0.0.0.0:$PORT -t public
     envVars:
       - key: APP_NAME
         value: FRACTO API
@@ -47,6 +46,7 @@ services:
       - key: FILESYSTEM_DISK
         value: public
 
+      # DB (enlazada al recurso "fracto" de abajo)
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -88,7 +88,7 @@ services:
     name: fracto-scheduler
     schedule: "* * * * *"
     env: php
-    command: php artisan schedule:run
+    startCommand: php artisan schedule:run
     envVars:
       - fromGroup: fracto-api
 
